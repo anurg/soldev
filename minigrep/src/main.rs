@@ -7,8 +7,8 @@ fn main() {
         println!("Problem parsing the arguments. {err}");
         process::exit(1);
     });
-    println!("Searching for {}", config.query);
-    println!("In the file {}", config.file_path);
+    // println!("Searching for {}", config.query);
+    // println!("In the file {}", config.file_path);
     if let Err(e) = minigrep::run(config) {
         println!("Application Error: {e} ");
         process::exit(1);
