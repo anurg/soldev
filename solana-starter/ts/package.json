@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "airdrop-wallet": "ts-node ./tools/airdrop_to_wallet.ts"
+    "airdrop-to-wallet": "ts-node ./tools/airdrop_to_wallet.ts",
+    "wallet-to-base58": "ts-node ./tools/wallet_to_base58.ts"
   },
   "keywords": [],
   "author": "",
