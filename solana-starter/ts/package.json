@@ -5,20 +5,23 @@
   "main": "index.js",
   "scripts": {
     "airdrop-to-wallet": "ts-node ./tools/airdrop_to_wallet.ts",
-    "wallet-to-base58": "ts-node ./tools/wallet_to_base58.ts"
+    "wallet-to-base58": "ts-node ./tools/wallet_to_base58.ts",
+    "base58-to-wallet": "ts-node ./tools/base58_to_wallet.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
-  "devDependencies": {
-    "bs58": "^6.0.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
+  "type": "commonjs",
   "dependencies": {
     "@solana/web3.js": "^1.98.4",
     "@types/prompt": "^1.1.9",
-    "prompt": "^1.3.0"
+    "bs58": "^6.0.0",
+    "prompt": "^1.3.0",
+    "typescript": "^5.9.3",
+     "@types/node": "^20.11.0",
+     "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+
   }
 }
