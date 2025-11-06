@@ -9,7 +9,8 @@
     "base58-to-wallet": "ts-node ./tools/base58_to_wallet.ts",
     "spl-init": "ts-node ./cluster1/spl_init.ts",
     "spl-mint": "ts-node ./cluster1/spl_mint.ts",
-    "spl-metadata": "ts-node ./cluster1/spl_metadata.ts"
+    "spl-metadata": "ts-node ./cluster1/spl_metadata.ts",
+    "spl-transfer": "ts-node ./cluster1/spl_transfer.ts"
   },
   "keywords": [],
   "author": "",
