@@ -11,7 +11,7 @@ import wallet from "/home/nkb/.config/solana/id.json";
 import airdrop_to_wallet from "../tools/airdrop_to_wallet";
 
 const keypair = Keypair.fromSecretKey(Uint8Array.from(wallet));
-const mint = new PublicKey("GWCfpQ9TLxNk4rCwpFsGzvKCsvNLWKZwgBRwvdWHjsd3");
+const mint = new PublicKey("CMT1xBPWCFcnbQoR3spVsUQCVQF5iDwa3E74g3KujUKD");
 const connection = new Connection("http://localhost:8899", "confirmed");
 const user = Keypair.generate();
 console.log(`User wallet- ${user.publicKey}`);

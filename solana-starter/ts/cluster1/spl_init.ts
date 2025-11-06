@@ -6,7 +6,7 @@ const keypair = Keypair.fromSecretKey(Uint8Array.from(wallet));
 console.log(`${keypair.publicKey}`);
 (async () => {
   const connection: Connection = new Connection(
-    "http://localhost:8899",
+    "http://api.devnet.solana.com",
     "confirmed"
   );
   try {
@@ -15,10 +15,10 @@ console.log(`${keypair.publicKey}`);
       keypair,
       keypair.publicKey,
       null,
-      6,
-      undefined,
-      {},
-      TOKEN_2022_PROGRAM_ID
+      6
+      // undefined,
+      // {},
+      // TOKEN_2022_PROGRAM_ID
     );
     console.log(`Token Minted- ${mint}`);
   } catch (e) {
