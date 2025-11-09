@@ -55,27 +55,32 @@ describe("vault", () => {
       })
       .rpc();
     console.log("Your transaction signature", tx);
-    const balance = await provider.connection.getBalance(vaultPDA, "confirmed");
 
+    const balance = await provider.connection.getBalance(vaultPDA, "confirmed");
     console.log(`Vault Balance lamports after Deposit- ${balance}`);
   });
   it("Withdraw from Vault", async () => {
     // Add your test here.
     const balance = await provider.connection.getBalance(vaultPDA);
-    const amount = new anchor.BN(0.001 * anchor.web3.LAMPORTS_PER_SOL);
+    const amount = new anchor.BN(0.1 * anchor.web3.LAMPORTS_PER_SOL);
     console.log(`Vault Balance lamports- ${balance}`);
-    if (balance >= amount.toNumber()) {
-      const tx = await program.methods
-        .withdraw(vault_id.toNumber(), amount)
-        .accounts({
-          maker: provider.publicKey,
-          vaultState: vaultStatePDA,
-          vault: vaultPDA,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .rpc();
-      console.log("Your transaction signature", tx);
-    }
+
+    const tx = await program.methods
+      .withdraw(vault_id.toNumber(), amount)
+      .accounts({
+        maker: provider.publicKey,
+        vaultState: vaultStatePDA,
+        vault: vaultPDA,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    const balance_after = await provider.connection.getBalance(
+      vaultPDA,
+      "confirmed"
+    );
+    console.log(`Vault Balance lamports after Withdrawal- ${balance_after}`);
   });
   it("Close Vault", async () => {
     // Add your test here.
