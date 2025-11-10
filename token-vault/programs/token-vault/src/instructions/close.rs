@@ -41,10 +41,10 @@ impl<'info> Close<'info> {
         // CPI to transfer vault balance to maker_ata
         let cpi_program = self.token_program.to_account_info();
         let cpi_accounts = TransferChecked {
-            from:self.maker_ata.to_account_info(),
-            to:self.vault.to_account_info(),
+            from:self.vault.to_account_info(),
+            to:self.maker_ata.to_account_info(),
             mint:self.mint.to_account_info(),
-            authority:self.maker.to_account_info()
+            authority:self.vault_state.to_account_info()
         };
         let seeds = &[b"vault_state".as_ref(),
                   self.maker.to_account_info().key.as_ref(),

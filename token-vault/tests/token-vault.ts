@@ -22,22 +22,13 @@ describe("token-vault", () => {
     [Buffer.from("vault"), payer.publicKey.toBuffer()],
     program.programId
   );
-  it("Is initialized!", async () => {
-    // Add your test here.
-    const decimals = 1_000_000;
-    const mint = await createMint(
-      connection,
-      payer,
-      provider.publicKey,
-      null,
-      6
-    );
+  const decimals = 1_000_000;
+  let mint: anchor.web3.PublicKey;
+  let payer_ata: anchor.web3.PublicKey;
+  before(async () => {
+    mint = await createMint(connection, payer, provider.publicKey, null, 6);
     console.log(`mint address - ${mint}`);
-    const payer_ata = getAssociatedTokenAddressSync(
-      mint,
-      payer.publicKey,
-      false
-    );
+    payer_ata = getAssociatedTokenAddressSync(mint, payer.publicKey, false);
     console.log(`Payer ATA - ${payer_ata}`);
     const ataTx = await createAssociatedTokenAccount(
       connection,
@@ -55,8 +46,47 @@ describe("token-vault", () => {
       1000 * decimals
     );
     console.log(`mintTo Tx - ${mintTx}`);
+  });
+  it("Is initialized!", async () => {
+    // Add your test here.
     const tx = await program.methods
       .initialize()
+      .accounts({
+        maker: payer.publicKey,
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
+  });
+  it("Deposit in Vault!", async () => {
+    // Add your test here.
+    const tx = await program.methods
+      .deposit(new anchor.BN(20 * decimals))
+      .accounts({
+        maker: payer.publicKey,
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
+  });
+  it("Withdraw from Vault!", async () => {
+    // Add your test here.
+    const tx = await program.methods
+      .withdraw(new anchor.BN(10 * decimals))
+      .accounts({
+        maker: payer.publicKey,
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
+  });
+  it("Close Vault!", async () => {
+    // Add your test here.
+    const tx = await program.methods
+      .close()
       .accounts({
         maker: payer.publicKey,
         mint,
