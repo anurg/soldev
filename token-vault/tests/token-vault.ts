@@ -16,7 +16,7 @@ describe("token-vault", () => {
   const payer = (provider.wallet as anchor.Wallet).payer;
   const program = anchor.workspace.tokenVault as Program<TokenVault>;
   const [vaultPDA, vaultBump] = anchor.web3.PublicKey.findProgramAddressSync(
-    Uint8Array.from([Buffer.from("vault_state")]),
+    [Buffer.from("vault_state"), payer.publicKey.toBuffer()],
     TOKEN_PROGRAM_ID
   );
   it("Is initialized!", async () => {
