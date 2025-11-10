@@ -1,10 +1,13 @@
 import * as anchor from "@coral-xyz/anchor";
+
 import { Program } from "@coral-xyz/anchor";
 import { TokenVault } from "../target/types/token_vault";
+import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 
 describe("token-vault", () => {
   // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
   const program = anchor.workspace.tokenVault as Program<TokenVault>;
 
