@@ -200,13 +200,13 @@ describe("token-vault", () => {
     console.log(`payer_before.value.amount-${payer_before.value.amount}`);
 
     assert.isTrue(
-      payer_after.value.amount <= payer_before.value.amount,
+      payer_after.value.amount > payer_before.value.amount,
       "Payer Balance should increase after withdrawal!"
     );
     console.log(`vault_after.value.amount-${vault_after.value.amount}`);
     console.log(`pvault_before.value.amount-${vault_before.value.amount}`);
     assert.isTrue(
-      vault_after.value.amount >= vault_before.value.amount,
+      vault_after.value.amount < vault_before.value.amount,
       "Vault Balance should decrease after withdrawal!"
     );
   });
