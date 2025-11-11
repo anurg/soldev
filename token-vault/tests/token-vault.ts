@@ -178,15 +178,15 @@ describe("token-vault", () => {
       vault_ata
     );
 
-    const tx = await program.methods
+    const txSig = await program.methods
       .withdraw(amount)
       .accounts({
         maker: payer.publicKey,
         mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .rpc();
-    console.log("Your transaction signature", tx);
+      .rpc({ skipPreflight: true, commitment: "confirmed" });
+    console.log("Your transaction signature", txSig);
     // get the After balances
     const payer_after = await provider.connection.getTokenAccountBalance(
       payer_ata
@@ -209,6 +209,38 @@ describe("token-vault", () => {
       vault_after.value.amount < vault_before.value.amount,
       "Vault Balance should decrease after withdrawal!"
     );
+    // Test emitted Logs for Withdrawal Instructions
+    const tx = await provider.connection.getParsedTransaction(
+      txSig,
+      "confirmed"
+    );
+    const eventParser = new anchor.EventParser(
+      program.programId,
+      new anchor.BorshCoder(program.idl)
+    );
+    const events = eventParser.parseLogs(tx.meta.logMessages);
+    let logs_emitted = false;
+    for (let event of events) {
+      if (event.name === "withdrawEvent") {
+        logs_emitted = true;
+        assert.strictEqual(
+          event.data.amount.toNumber(),
+          amount.toNumber(),
+          "Log amount should be equal to Withdrawal Amount!"
+        );
+        assert.strictEqual(
+          event.data.maker.toString(),
+          payer.publicKey.toString(),
+          "Emitted Log payer should be same as Payer."
+        );
+        assert.strictEqual(
+          event.data.vault.toString(),
+          vault_ata.toString(),
+          "Emitted Vault address should be same as Vault!"
+        );
+      }
+    }
+    assert.isTrue(logs_emitted, "Withdraw Logs not emitted!");
   });
   it("Close Vault!", async () => {
     // Add your test here.
