@@ -3,7 +3,8 @@ use anchor_spl::{
     associated_token::AssociatedToken, token_interface::{Mint, TokenAccount, TokenInterface,TransferChecked,transfer_checked}
 };
 
-use crate::VaultState;
+use crate::{VaultState, events::*};
+
 #[derive(Accounts)]
 pub struct Deposit<'info> {
     #[account(mut)]
@@ -45,6 +46,11 @@ impl<'info> Deposit<'info> {
         };
         let cpi_context = CpiContext::new(cpi_program,cpi_accounts);
         transfer_checked(cpi_context, amount, self.mint.decimals)?;
+        emit!(DepositEvent {
+            amount,
+            maker:self.maker.key(),
+            vault:self.vault.key(),
+        });
         Ok(())
     }
 }

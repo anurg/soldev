@@ -1,5 +1,6 @@
 pub mod constants;
 pub mod error;
+pub mod events;
 pub mod instructions;
 pub mod state;
 
@@ -9,7 +10,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("4A1mUdRsnvjrALPYCLCwgdNVF6kHKQ9PwZppDSc9ZtxL");
+declare_id!("B42LGVqwXkudhGVfhndmRZgoPpbLn9nJNJzNy3djhMzt");
 
 #[program]
 pub mod token_vault {

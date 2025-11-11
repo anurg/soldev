@@ -4,7 +4,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface,TransferChecked,transfer_checked,CloseAccount,close_account},
 };
 
-use crate::VaultState;
+use crate::{VaultState, events::CloseEvent};
 #[derive(Accounts)]
 pub struct Close<'info> {
     #[account(mut)]
@@ -61,6 +61,12 @@ impl<'info> Close<'info> {
         };
         let close_context = CpiContext::new_with_signer(self.token_program.to_account_info(), close_accounts, signer_seeds);
         close_account(close_context)?;
+        emit!(CloseEvent {
+            maker:self.maker.key(),
+            maker_ata:self.maker_ata.key(),
+            mint:self.mint.key(),
+            vault:self.vault.key(),
+        });
         Ok(())
     }
 }

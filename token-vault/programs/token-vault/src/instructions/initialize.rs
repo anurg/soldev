@@ -4,6 +4,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
 
+use crate::events::*;
 use crate::VaultState;
 
 #[derive(Accounts)]
@@ -35,6 +36,10 @@ impl<'info> Initialize<'info> {
     pub fn init(&mut self, bumps: &InitializeBumps) -> Result<()> {
         self.vault_state.state_bump = bumps.vault_state;
         self.vault_state.mint = self.mint.key();
+        emit!(InitializeEvent {
+            mint: self.mint.key(),
+            vault: self.vault.key(),
+        });
         Ok(())
     }
 }

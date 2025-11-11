@@ -3,7 +3,7 @@ use anchor_spl::{
     associated_token::AssociatedToken, token_interface::{Mint, TokenAccount, TokenInterface,TransferChecked,transfer_checked}
 };
 
-use crate::VaultState;
+use crate::{VaultState, events::WithdrawEvent};
 #[derive(Accounts)]
 pub struct Withdraw<'info> {
     #[account(mut)]
@@ -50,6 +50,11 @@ impl<'info> Withdraw<'info> {
         let signer_seeds=&[&seeds[..]];
         let cpi_context = CpiContext::new_with_signer(cpi_program,cpi_accounts,signer_seeds);
         transfer_checked(cpi_context, amount, self.mint.decimals)?;
+        emit!(WithdrawEvent {
+            amount,
+            maker:self.maker.key(),
+            vault:self.vault.key(),
+        });
         Ok(())
     }
 }

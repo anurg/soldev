@@ -11,6 +11,7 @@ import {
   TOKEN_2022_PROGRAM_ID,
 } from "@solana/spl-token";
 import { min } from "bn.js";
+import { assert } from "chai";
 describe("token-vault", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
@@ -18,10 +19,11 @@ describe("token-vault", () => {
   const connection = provider.connection;
   const payer = (provider.wallet as anchor.Wallet).payer;
   const program = anchor.workspace.tokenVault as Program<TokenVault>;
-  const [vaultPDA, vaultBump] = anchor.web3.PublicKey.findProgramAddressSync(
-    [Buffer.from("vault"), payer.publicKey.toBuffer()],
-    program.programId
-  );
+  const [vaultStatePDA, vaultStateBump] =
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("vault_state"), payer.publicKey.toBuffer()],
+      program.programId
+    );
   const decimals = 1_000_000;
   let mint: anchor.web3.PublicKey;
   let payer_ata: anchor.web3.PublicKey;
@@ -58,7 +60,41 @@ describe("token-vault", () => {
       })
       .rpc();
     console.log("Your transaction signature", tx);
+    // Testing for Vault generated Data
+    const vaultData = await program.account.vaultState.fetch(vaultStatePDA);
+    assert.strictEqual(
+      vaultData.mint.toString(),
+      mint.toString(),
+      "Vault Mint should be Mint."
+    );
+    // Testing for Vault Initialization Logs
+    const tx1 = await provider.connection.getParsedTransaction(tx, "confirmed");
+    console.log(`tx1-${tx1}`);
+    const eventParser = new anchor.EventParser(
+      program.programId,
+      new anchor.BorshCoder(program.idl)
+    );
+    console.log(`eventParser-${eventParser}`);
+    const events = eventParser.parseLogs(tx1.meta.logMessages);
+    let logs_emitted = false;
+    for (let event of events) {
+      if (event.name === "initializeEvent") {
+        logs_emitted = true;
+        assert.strictEqual(
+          event.data.vault.toString(),
+          vaultStateBump.toString(),
+          "Event Vault should match the VaultState PDA"
+        );
+        assert.strictEqual(
+          event.data.mint.toString(),
+          mint.toString(),
+          "Event mint should match the mint key"
+        );
+      }
+    }
+    assert.isTrue(logs_emitted, "Logs should have been emitted!");
   });
+
   it("Deposit in Vault!", async () => {
     // Add your test here.
     const tx = await program.methods
