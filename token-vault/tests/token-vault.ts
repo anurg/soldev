@@ -258,7 +258,7 @@ describe("token-vault", () => {
         mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .rpc();
+      .rpc({ commitment: "confirmed" });
     console.log("Your transaction signature", txSig);
     // get the After balances
     const payer_after = await provider.connection.getTokenAccountBalance(
@@ -281,5 +281,42 @@ describe("token-vault", () => {
         parseInt(vault_before.value.amount),
       "Increase in Payer Balance should be equal to Vault Amount after vault Close"
     );
+    // Test for emitted Logs
+    const tx = await provider.connection.getParsedTransaction(
+      txSig,
+      "confirmed"
+    );
+    const eventParser = new anchor.EventParser(
+      program.programId,
+      new anchor.BorshCoder(program.idl)
+    );
+    const events = eventParser.parseLogs(tx.meta.logMessages);
+    let logs_emitted = false;
+    for (let event of events) {
+      if (event.name === "closeEvent") {
+        logs_emitted = true;
+        assert.strictEqual(
+          event.data.maker.toString(),
+          payer.publicKey.toString(),
+          "Maker in Emitted Log should be payer."
+        );
+        assert.strictEqual(
+          event.data.mint.toString(),
+          mint.toString(),
+          "Emitted Log mint should be same as mint!"
+        );
+        assert.strictEqual(
+          event.data.vault.toString(),
+          vault_ata.toString(),
+          "Emitted Log mint should be same as mint!"
+        );
+        assert.strictEqual(
+          event.data.makerAta.toString(),
+          payer_ata.toString(),
+          "Emitted Log mint should be same as mint!"
+        );
+      }
+    }
+    assert.isTrue(logs_emitted, "CloseEvent Logs not emitted!");
   });
 });
