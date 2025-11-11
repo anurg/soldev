@@ -52,6 +52,7 @@ describe("token-vault", () => {
     );
     console.log(`mintTo Tx - ${mintTx}`);
   });
+
   it("Is initialized!", async () => {
     // Add your test here.
 
@@ -127,8 +128,7 @@ describe("token-vault", () => {
       payer_before > payer_after,
       "Payer Balance should decrease after Deposit!"
     );
-    console.log(`vault_before-${vault_before}`);
-    console.log(`vault_after-${vault_after}`);
+
     assert.isTrue(
       vault_after >= vault_before,
       "Vault Balance should increase after Deposit!"
@@ -166,18 +166,50 @@ describe("token-vault", () => {
     }
     assert.isTrue(log_emitted, "Depost Event logs not emitted!");
   });
-  // it("Withdraw from Vault!", async () => {
-  //   // Add your test here.
-  //   const tx = await program.methods
-  //     .withdraw(new anchor.BN(10 * decimals))
-  //     .accounts({
-  //       maker: payer.publicKey,
-  //       mint,
-  //       tokenProgram: TOKEN_PROGRAM_ID,
-  //     })
-  //     .rpc();
-  //   console.log("Your transaction signature", tx);
-  // });
+
+  it("Withdraw from Vault!", async () => {
+    // Add your test here.
+    const amount = new anchor.BN(10 * decimals);
+    // get the before balances
+    const payer_before = await provider.connection.getTokenAccountBalance(
+      payer_ata
+    );
+    const vault_before = await provider.connection.getTokenAccountBalance(
+      vault_ata
+    );
+
+    const tx = await program.methods
+      .withdraw(amount)
+      .accounts({
+        maker: payer.publicKey,
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
+    // get the After balances
+    const payer_after = await provider.connection.getTokenAccountBalance(
+      payer_ata
+    );
+
+    const vault_after = await provider.connection.getTokenAccountBalance(
+      vault_ata
+    );
+    //Test for Balance updates
+    console.log(`payer_after.value.amount-${payer_after.value.amount}`);
+    console.log(`payer_before.value.amount-${payer_before.value.amount}`);
+
+    assert.isTrue(
+      payer_after.value.amount <= payer_before.value.amount,
+      "Payer Balance should increase after withdrawal!"
+    );
+    console.log(`vault_after.value.amount-${vault_after.value.amount}`);
+    console.log(`pvault_before.value.amount-${vault_before.value.amount}`);
+    assert.isTrue(
+      vault_after.value.amount >= vault_before.value.amount,
+      "Vault Balance should decrease after withdrawal!"
+    );
+  });
   // it("Close Vault!", async () => {
   //   // Add your test here.
   //   const tx = await program.methods
