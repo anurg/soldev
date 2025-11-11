@@ -210,16 +210,44 @@ describe("token-vault", () => {
       "Vault Balance should decrease after withdrawal!"
     );
   });
-  // it("Close Vault!", async () => {
-  //   // Add your test here.
-  //   const tx = await program.methods
-  //     .close()
-  //     .accounts({
-  //       maker: payer.publicKey,
-  //       mint,
-  //       tokenProgram: TOKEN_PROGRAM_ID,
-  //     })
-  //     .rpc();
-  //   console.log("Your transaction signature", tx);
-  // });
+  it("Close Vault!", async () => {
+    // Add your test here.
+    // get the before balances
+    const payer_before = await provider.connection.getTokenAccountBalance(
+      payer_ata
+    );
+    const vault_before = await provider.connection.getTokenAccountBalance(
+      vault_ata
+    );
+    const txSig = await program.methods
+      .close()
+      .accounts({
+        maker: payer.publicKey,
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+    console.log("Your transaction signature", txSig);
+    // get the After balances
+    const payer_after = await provider.connection.getTokenAccountBalance(
+      payer_ata
+    );
+
+    //Test for Balance updates
+    console.log(`payer_after.value.amount-${payer_after.value.amount}`);
+    console.log(`payer_before.value.amount-${payer_before.value.amount}`);
+
+    assert.isTrue(
+      parseInt(payer_after.value.amount) > parseInt(payer_before.value.amount),
+      "Payer Balance should increase after vault Close!"
+    );
+
+    console.log(`vault_before.value.amount-${vault_before.value.amount}`);
+    assert.isTrue(
+      parseInt(payer_after.value.amount) -
+        parseInt(payer_before.value.amount) ===
+        parseInt(vault_before.value.amount),
+      "Increase in Payer Balance should be equal to Vault Amount after vault Close"
+    );
+  });
 });
