@@ -24,13 +24,15 @@ describe("token-vault", () => {
       [Buffer.from("vault_state"), payer.publicKey.toBuffer()],
       program.programId
     );
+
   const decimals = 1_000_000;
   let mint: anchor.web3.PublicKey;
   let payer_ata: anchor.web3.PublicKey;
+  let vault_ata: anchor.web3.PublicKey;
   before(async () => {
     mint = await createMint(connection, payer, provider.publicKey, null, 6);
     console.log(`mint address - ${mint}`);
-    payer_ata = getAssociatedTokenAddressSync(mint, payer.publicKey, false);
+    payer_ata = getAssociatedTokenAddressSync(mint, payer.publicKey, true);
     console.log(`Payer ATA - ${payer_ata}`);
     const ataTx = await createAssociatedTokenAccount(
       connection,
@@ -39,6 +41,7 @@ describe("token-vault", () => {
       payer.publicKey
     );
     console.log(`ATA created - ${ataTx}`);
+    vault_ata = getAssociatedTokenAddressSync(mint, vaultStatePDA, true);
     const mintTx = await mintTo(
       connection,
       payer,
@@ -51,15 +54,16 @@ describe("token-vault", () => {
   });
   it("Is initialized!", async () => {
     // Add your test here.
-    const tx = await program.methods
+
+    const txSig = await program.methods
       .initialize()
       .accounts({
         maker: payer.publicKey,
         mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .rpc();
-    console.log("Your transaction signature", tx);
+      .rpc({ skipPreflight: true, commitment: "confirmed" });
+    console.log("Your transaction signature", txSig);
     // Testing for Vault generated Data
     const vaultData = await program.account.vaultState.fetch(vaultStatePDA);
     assert.strictEqual(
@@ -68,22 +72,26 @@ describe("token-vault", () => {
       "Vault Mint should be Mint."
     );
     // Testing for Vault Initialization Logs
-    const tx1 = await provider.connection.getParsedTransaction(tx, "confirmed");
-    console.log(`tx1-${tx1}`);
+    const tx = await provider.connection.getParsedTransaction(
+      txSig,
+      "confirmed"
+    );
+    console.log(`tx1-${tx.meta}`);
     const eventParser = new anchor.EventParser(
       program.programId,
       new anchor.BorshCoder(program.idl)
     );
     console.log(`eventParser-${eventParser}`);
-    const events = eventParser.parseLogs(tx1.meta.logMessages);
+    const events = eventParser.parseLogs(tx.meta.logMessages);
+
     let logs_emitted = false;
     for (let event of events) {
       if (event.name === "initializeEvent") {
         logs_emitted = true;
         assert.strictEqual(
           event.data.vault.toString(),
-          vaultStateBump.toString(),
-          "Event Vault should match the VaultState PDA"
+          vault_ata.toString(),
+          "Event Vault should match the Vault PDA"
         );
         assert.strictEqual(
           event.data.mint.toString(),
@@ -96,39 +104,90 @@ describe("token-vault", () => {
   });
 
   it("Deposit in Vault!", async () => {
-    // Add your test here.
-    const tx = await program.methods
+    const amount = new anchor.BN(20 * decimals);
+    // Before Deposit Balances
+    const payer_before = await provider.connection.getBalance(payer.publicKey);
+    const vault_before = await provider.connection.getBalance(vault_ata);
+
+    const txSig = await program.methods
       .deposit(new anchor.BN(20 * decimals))
       .accounts({
         maker: payer.publicKey,
         mint,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
-      .rpc();
-    console.log("Your transaction signature", tx);
+      .rpc({ skipPreflight: true, commitment: "confirmed" });
+    console.log("Your transaction signature", txSig);
+    // After Deposit Balances
+    const payer_after = await provider.connection.getBalance(payer.publicKey);
+    const vault_after = await provider.connection.getBalance(vault_ata);
+
+    //Test that Balances have changed
+    assert.isTrue(
+      payer_before > payer_after,
+      "Payer Balance should decrease after Deposit!"
+    );
+    console.log(`vault_before-${vault_before}`);
+    console.log(`vault_after-${vault_after}`);
+    assert.isTrue(
+      vault_after >= vault_before,
+      "Vault Balance should increase after Deposit!"
+    );
+    // Test Event Logs
+    const tx = await provider.connection.getParsedTransaction(
+      txSig,
+      "confirmed"
+    );
+    const eventParser = new anchor.EventParser(
+      program.programId,
+      new anchor.BorshCoder(program.idl)
+    );
+    const events = eventParser.parseLogs(tx.meta.logMessages);
+    let log_emitted = false;
+    for (let event of events) {
+      if (event.name === "depositEvent") {
+        log_emitted = true;
+        assert.strictEqual(
+          event.data.amount.toNumber(),
+          amount.toNumber(),
+          "Log Amount should be equal to Deposit"
+        );
+        assert.strictEqual(
+          event.data.maker.toString(),
+          payer.publicKey.toString(),
+          "Emitted Log Payer should be equal to Payer"
+        );
+        assert.strictEqual(
+          event.data.vault.toString(),
+          vault_ata.toString(),
+          "Emitted Log vault should be equal to derived vault"
+        );
+      }
+    }
+    assert.isTrue(log_emitted, "Depost Event logs not emitted!");
   });
-  it("Withdraw from Vault!", async () => {
-    // Add your test here.
-    const tx = await program.methods
-      .withdraw(new anchor.BN(10 * decimals))
-      .accounts({
-        maker: payer.publicKey,
-        mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .rpc();
-    console.log("Your transaction signature", tx);
-  });
-  it("Close Vault!", async () => {
-    // Add your test here.
-    const tx = await program.methods
-      .close()
-      .accounts({
-        maker: payer.publicKey,
-        mint,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
-      .rpc();
-    console.log("Your transaction signature", tx);
-  });
+  // it("Withdraw from Vault!", async () => {
+  //   // Add your test here.
+  //   const tx = await program.methods
+  //     .withdraw(new anchor.BN(10 * decimals))
+  //     .accounts({
+  //       maker: payer.publicKey,
+  //       mint,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     })
+  //     .rpc();
+  //   console.log("Your transaction signature", tx);
+  // });
+  // it("Close Vault!", async () => {
+  //   // Add your test here.
+  //   const tx = await program.methods
+  //     .close()
+  //     .accounts({
+  //       maker: payer.publicKey,
+  //       mint,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //     })
+  //     .rpc();
+  //   console.log("Your transaction signature", tx);
+  // });
 });
