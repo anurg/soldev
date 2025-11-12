@@ -15,7 +15,7 @@ declare_id!("2wEGsaYr6qRVG1MBkbATSHeJ7EMmxNVUV8mf2JVSc2hg");
 pub mod escrow {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        initialize::handler(ctx)
+    pub fn initialize(ctx: Context<Make>) -> Result<()> {
+        Ok(())
     }
 }
