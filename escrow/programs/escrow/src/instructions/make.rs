@@ -30,6 +30,7 @@ pub struct Make<'info> {
     )]
     pub escrow: Account<'info, Escrow>,
     #[account(
+        mut,
         associated_token::mint=mint_a,
         associated_token::authority=escrow,
         associated_token::token_program=token_program,

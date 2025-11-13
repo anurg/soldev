@@ -53,7 +53,8 @@ impl<'info> Refund<'info> {
         };
         let seeds = &[
             b"escrow".as_ref(),
-            &self.escrow.seed.to_le_bytes(),
+            &seed.to_le_bytes(),
+            self.maker.to_account_info().key.as_ref(),
             &[self.escrow.bump],
         ];
         let signer_seeds = &[&seeds[..]];

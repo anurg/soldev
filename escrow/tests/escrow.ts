@@ -10,6 +10,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { ConfirmedTransaction } from "@solana/web3.js";
+import { SYSTEM_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/native/system";
 describe("escrow", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
@@ -28,16 +29,18 @@ describe("escrow", () => {
 
   let user_ata_b: anchor.web3.PublicKey;
   let user_ata_a: anchor.web3.PublicKey;
-  let vault = anchor.web3.PublicKey.findProgramAddressSync(
-    Uint8Array.from([
+  let vault: anchor.web3.PublicKey;
+  let [escrowPDA, escrowBump] = anchor.web3.PublicKey.findProgramAddressSync(
+    [
       Buffer.from("escrow"),
-      seed.toBuffer(),
+      seed.toArrayLike(Buffer, "le", 8),
       payer.publicKey.toBuffer(),
-    ]),
-    TOKEN_PROGRAM_ID
+    ],
+    program.programId
   );
 
   let user = anchor.web3.Keypair.generate();
+  console.log(`user-${user.publicKey}`);
   const airdrop = async (key: anchor.web3.PublicKey) => {
     const tx = await provider.connection.requestAirdrop(
       key,
@@ -110,17 +113,96 @@ describe("escrow", () => {
       20000 * decimals
     );
     console.log(`mintTxUser-${mintTxUser}`);
+    // get the vault ATA address and create ATA
+    vault = await getAssociatedTokenAddress(mint_a, escrowPDA, true);
+    let vaultTx = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      payer,
+      mint_a,
+      escrowPDA,
+      true
+    );
+    console.log(`vault - ${vaultTx}`);
+    // Create maker_ata_b  ATA
+    payer_ata_b = await getAssociatedTokenAddress(
+      mint_b,
+      payer.publicKey,
+      true
+    );
+    let payer_ata_bTx = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      payer,
+      mint_b,
+      payer.publicKey,
+      true
+    );
+    console.log(`payer_ata_bTx - ${payer_ata_bTx}`);
+    // Create user_ata_a ATA
+    user_ata_a = await getAssociatedTokenAddress(mint_a, user.publicKey, true);
+    let user_ata_aTx = await getOrCreateAssociatedTokenAccount(
+      provider.connection,
+      payer,
+      mint_a,
+      user.publicKey,
+      true
+    );
+    console.log(`user_ata_aTx - ${user_ata_aTx}`);
   });
 
-  it("Is initialized!", async () => {
+  it("Vault Is initialized!", async () => {
     // Add your test here.
     const tx = await program.methods
       .make(seed, mint_a, mint_b, receive, amount)
-      .accounts({
+      .accountsStrict({
         maker: payer.publicKey,
         mintA: mint_a,
         mintB: mint_b,
+        makerAtaA: payer_ata_a,
+        vault: vault,
+        escrow: escrowPDA,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SYSTEM_PROGRAM_ID,
       })
+      .rpc();
+    console.log("Your transaction signature", tx);
+  });
+  // it("Close Vault & Refund!", async () => {
+  //   // Add your test here.
+  //   const tx = await program.methods
+  //     .refund(seed)
+  //     .accountsStrict({
+  //       maker: payer.publicKey,
+  //       mintA: mint_a,
+  //       makerAtaA: payer_ata_a,
+  //       vault: vault,
+  //       escrow: escrowPDA,
+  //       tokenProgram: TOKEN_PROGRAM_ID,
+  //       associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+  //       systemProgram: SYSTEM_PROGRAM_ID,
+  //     })
+  //     .rpc();
+  //   console.log("Your transaction signature", tx);
+  // });
+  it("User Takes the Offer", async () => {
+    // Add your test here.
+    const tx = await program.methods
+      .take(seed)
+      .accountsStrict({
+        maker: payer.publicKey,
+        mintA: mint_a,
+        mintB: mint_b,
+        makerAtaB: payer_ata_b,
+        taker: user.publicKey,
+        takerAtaA: user_ata_a,
+        takerAtaB: user_ata_b,
+        vault: vault,
+        escrow: escrowPDA,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SYSTEM_PROGRAM_ID,
+      })
+      .signers([user])
       .rpc();
     console.log("Your transaction signature", tx);
   });
