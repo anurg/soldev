@@ -39,6 +39,9 @@
     "@solana/wallet-adapter-react-ui": "0.9.39",
     "@solana/web3.js": "^1.98.4",
     "@tanstack/react-query": "^5.89.0",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "chai": "^6.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jotai": "^2.14.0",
@@ -49,6 +52,7 @@
     "react-dom": "^19.1.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
+    "ts-mocha": "^11.1.0",
     "tw-animate-css": "^1.3.8"
   },
   "devDependencies": {
