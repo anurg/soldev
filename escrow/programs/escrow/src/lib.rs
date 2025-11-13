@@ -9,7 +9,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("2wEGsaYr6qRVG1MBkbATSHeJ7EMmxNVUV8mf2JVSc2hg");
+declare_id!("F6qGchHVrmoAyaRiQzFiUoRRUj5xvKG1i7DefHNR8GWy");
 
 #[program]
 pub mod escrow {
@@ -26,6 +26,14 @@ pub mod escrow {
         ctx.accounts
             .init_escrow(seed, mint_a, mint_b, receive, ctx.bumps)?;
         ctx.accounts.deposit(amount)?;
+        Ok(())
+    }
+    pub fn refund(ctx: Context<Refund>, seed: u64) -> Result<()> {
+        ctx.accounts.close_and_refund(seed)?;
+        Ok(())
+    }
+    pub fn take(ctx: Context<Take>, seed: u64) -> Result<()> {
+        ctx.accounts.take(seed)?;
         Ok(())
     }
 }
