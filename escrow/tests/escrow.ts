@@ -6,6 +6,8 @@ import {
   getAssociatedTokenAddress,
   getOrCreateAssociatedTokenAccount,
   mintTo,
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { ConfirmedTransaction } from "@solana/web3.js";
 describe("escrow", () => {
@@ -26,6 +28,14 @@ describe("escrow", () => {
 
   let user_ata_b: anchor.web3.PublicKey;
   let user_ata_a: anchor.web3.PublicKey;
+  let vault = anchor.web3.PublicKey.findProgramAddressSync(
+    Uint8Array.from([
+      Buffer.from("escrow"),
+      seed.toBuffer(),
+      payer.publicKey.toBuffer(),
+    ]),
+    TOKEN_PROGRAM_ID
+  );
 
   let user = anchor.web3.Keypair.generate();
   const airdrop = async (key: anchor.web3.PublicKey) => {
@@ -71,9 +81,8 @@ describe("escrow", () => {
     console.log(`mintTx-${mintTx}`);
     // Mint mint_b and Transfer to user_ata_b 10000 tokens
     await airdrop(user.publicKey);
-    console.log(
-      `user balance- ${provider.connection.getBalance(user.publicKey)}`
-    );
+    const balance = await provider.connection.getBalance(user.publicKey);
+    console.log(`user balance- ${balance}`);
     mint_b = await createMint(
       provider.connection,
       user,
@@ -104,8 +113,15 @@ describe("escrow", () => {
   });
 
   it("Is initialized!", async () => {
-    // // Add your test here.
-    // const tx = await program.methods.make().rpc();
-    // console.log("Your transaction signature", tx);
+    // Add your test here.
+    const tx = await program.methods
+      .make(seed, mint_a, mint_b, receive, amount)
+      .accounts({
+        maker: payer.publicKey,
+        mintA: mint_a,
+        mintB: mint_b,
+      })
+      .rpc();
+    console.log("Your transaction signature", tx);
   });
 });
