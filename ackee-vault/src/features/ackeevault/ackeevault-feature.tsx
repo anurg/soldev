@@ -2,8 +2,8 @@ import { useSolana } from '@/components/solana/use-solana'
 import { WalletDropdown } from '@/components/wallet-dropdown'
 import { AppHero } from '@/components/app-hero'
 import { AckeevaultUiProgramExplorerLink } from './ui/ackeevault-ui-program-explorer-link'
-import { AckeevaultUiCreate } from './ui/ackeevault-ui-create'
-import { AckeevaultUiProgram } from '@/features/ackeevault/ui/ackeevault-ui-program'
+import { AckeevaultUiInitialize } from './ui/ackeevault-ui-initialize'
+import { AckeevaultUiVaults } from './ui/ackeevault-ui-vaults'
 
 export default function AckeevaultFeature() {
   const { account } = useSolana()
@@ -22,13 +22,15 @@ export default function AckeevaultFeature() {
 
   return (
     <div>
-      <AppHero title="Ackeevault" subtitle={'Run the program by clicking the "Run program" button.'}>
+      <AppHero title="Ackee Vault" subtitle="Manage your personal vaults on Solana">
         <p className="mb-6">
           <AckeevaultUiProgramExplorerLink />
         </p>
-        <AckeevaultUiCreate account={account} />
       </AppHero>
-      <AckeevaultUiProgram />
+      <div className="max-w-6xl mx-auto space-y-6 p-4">
+        <AckeevaultUiInitialize account={account} />
+        <AckeevaultUiVaults account={account} />
+      </div>
     </div>
   )
 }

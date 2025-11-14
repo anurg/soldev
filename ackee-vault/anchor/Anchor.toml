@@ -8,11 +8,15 @@ skip-lint = false
 [programs.localnet]
 ackeevault = "9d42MkYCoktjzymM9waPNjambtozQwui3demWNdcCEBt"
 
+[programs.devnet]
+ackeevault = "9d42MkYCoktjzymM9waPNjambtozQwui3demWNdcCEBt"
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+# cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
