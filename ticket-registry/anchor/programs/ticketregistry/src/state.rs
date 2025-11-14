@@ -1,5 +1,8 @@
 use anchor_lang::prelude::*;
 
+pub const MAX_NAME_LEN: usize = 30;
+pub const MAX_DESCRIPTION_LEN: usize = 300;
+
 #[account]
 #[derive(InitSpace)]
 pub struct Event {
@@ -11,4 +14,12 @@ pub struct Event {
     pub available_tickets: u64,
     pub event_organizer: Pubkey,
     pub start_date: i64,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct Ticket {
+    pub event: Pubkey,
+    pub buyer: Pubkey,
+    pub price: u64,
 }

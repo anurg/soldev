@@ -2,14 +2,14 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum TicketRegistryError {
-    #[msg("Name Too Long")]
+    #[msg("Name too long")]
     NameTooLong,
-    #[msg("Description Too Long")]
+    #[msg("Description too long")]
     DescriptionTooLong,
-    #[msg("Start Date is in the Past")]
+    #[msg("Start date is in the past")]
     StartDateInThePast,
-    #[msg("Available Tickets is too low")]
-    AvaialbeTicketsTooLow,
-    #[msg("All Tickets Sold Out")]
+    #[msg("Available tickets is too low")]
+    AvailableTicketsTooLow,
+    #[msg("All tickets sold out")]
     AllTicketsSoldOut,
 }
