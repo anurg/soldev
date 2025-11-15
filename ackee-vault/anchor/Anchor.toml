@@ -6,16 +6,15 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-ackeevault = "9d42MkYCoktjzymM9waPNjambtozQwui3demWNdcCEBt"
+ackeevault = "42VY2mEV4gUz31qPaT5oAHFojXQE9tWAEwfdAf6w5rxL"
 
 [programs.devnet]
-ackeevault = "9d42MkYCoktjzymM9waPNjambtozQwui3demWNdcCEBt"
+ackeevault = "42VY2mEV4gUz31qPaT5oAHFojXQE9tWAEwfdAf6w5rxL"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-# cluster = "localnet"
 cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
