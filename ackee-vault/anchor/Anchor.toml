@@ -5,10 +5,10 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-ackeevault = "42VY2mEV4gUz31qPaT5oAHFojXQE9tWAEwfdAf6w5rxL"
-
 [programs.devnet]
+ackeevault = "Cbw7tqDBEit5F1R8ftgArpHuPwcHomc3JWjipCww8AaG"
+
+[programs.localnet]
 ackeevault = "42VY2mEV4gUz31qPaT5oAHFojXQE9tWAEwfdAf6w5rxL"
 
 [registry]
