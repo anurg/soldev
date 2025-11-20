@@ -10,13 +10,12 @@ pub struct User {
     #[serde(skip_serializing)]
     pub password_hash: String,
     pub full_name: String,
-    pub role: UserRole,
+    pub role: String,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "text")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum UserRole {
     #[serde(rename = "admin")]
     Admin,

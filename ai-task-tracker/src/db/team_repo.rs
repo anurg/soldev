@@ -1,4 +1,4 @@
-use crate::models::{AddTeamMemberRequest, CreateTeamRequest, Team, TeamMember, UpdateTeamRequest};
+use crate::models::{CreateTeamRequest, Team, TeamMember, UpdateTeamRequest};
 use sqlx::PgPool;
 use uuid::Uuid;
 

@@ -1,4 +1,4 @@
-use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, web, HttpMessage, HttpRequest, HttpResponse, Responder};
 use sqlx::PgPool;
 
 use crate::{

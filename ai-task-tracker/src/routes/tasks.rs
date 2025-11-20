@@ -4,11 +4,11 @@ use uuid::Uuid;
 
 use crate::{
     db::{
-        create_subtask, create_task, delete_subtask, delete_task, find_task_by_id,
-        list_subtasks, list_tasks, update_subtask, update_task, update_task_progress,
+        create_subtask, create_task, delete_task, find_task_by_id,
+        list_subtasks, list_tasks, update_task, update_task_progress,
     },
     models::{
-        CreateSubtaskRequest, CreateTaskRequest, UpdateProgressRequest, UpdateSubtaskRequest,
+        CreateSubtaskRequest, CreateTaskRequest, UpdateProgressRequest,
         UpdateTaskRequest,
     },
 };

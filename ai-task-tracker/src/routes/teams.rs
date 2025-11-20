@@ -1,4 +1,4 @@
-use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -8,7 +8,6 @@ use crate::{
         list_teams, remove_team_member, update_team,
     },
     models::{AddTeamMemberRequest, CreateTeamRequest, UpdateTeamRequest},
-    utils::Claims,
 };
 
 #[post("")]

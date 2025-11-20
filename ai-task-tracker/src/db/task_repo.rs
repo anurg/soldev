@@ -1,4 +1,4 @@
-use crate::models::{CreateTaskRequest, Task, TaskPriority, TaskStatus, UpdateProgressRequest, UpdateTaskRequest};
+use crate::models::{CreateTaskRequest, Task, UpdateTaskRequest};
 use sqlx::PgPool;
 use uuid::Uuid;
 

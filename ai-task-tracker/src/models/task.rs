@@ -9,9 +9,9 @@ pub struct Task {
     pub project_id: Uuid,
     pub title: String,
     pub description: Option<String>,
-    pub status: TaskStatus,
+    pub status: String,
     pub progress_percent: i32,
-    pub priority: TaskPriority,
+    pub priority: String,
     pub assignee_id: Option<Uuid>,
     pub due_date: Option<DateTime<Utc>>,
     pub source_email_id: Option<String>,
@@ -19,8 +19,7 @@ pub struct Task {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "text")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TaskStatus {
     #[serde(rename = "todo")]
     Todo,
@@ -53,8 +52,7 @@ impl std::str::FromStr for TaskStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "text")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TaskPriority {
     #[serde(rename = "low")]
     Low,

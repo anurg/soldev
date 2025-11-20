@@ -1,4 +1,4 @@
-use crate::models::{CreateUserRequest, User, UserRole};
+use crate::models::{CreateUserRequest, User};
 use sqlx::PgPool;
 use uuid::Uuid;
 

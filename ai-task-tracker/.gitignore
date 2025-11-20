@@ -4,7 +4,7 @@
 Cargo.lock
 
 # Environment
-.env
+# .env
 
 # IDE
 .vscode/
