@@ -5,7 +5,7 @@ import { useAuth } from '@/context/auth-context';
 import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Folder, CheckSquare, Clock } from 'lucide-react';
+import { Plus, Folder, CheckSquare, Clock, ListTodo, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { CreateProjectDialog } from '@/components/features/projects/create-project-dialog';
 
@@ -61,6 +61,13 @@ export default function DashboardPage() {
   // Filter out subtasks if necessary, or keep them. Assuming we want top-level tasks only for consistency.
   const topLevelTasks = tasks.filter(t => t.parent_task_id == null);
   
+  const totalTasks = topLevelTasks.length;
+  
+  const inProgressTasks = topLevelTasks.filter(t => {
+    const s = normalize(t.status);
+    return s.includes('in_progress') || s.includes('in progress') || s.includes('ongoing');
+  }).length;
+  
   const pendingTasks = topLevelTasks.filter(t => {
     const s = normalize(t.status);
     return !s.includes('done') && !s.includes('completed');
@@ -81,7 +88,7 @@ export default function DashboardPage() {
         }} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -89,6 +96,24 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{projects.length}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
+            <ListTodo className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalTasks}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{inProgressTasks}</div>
           </CardContent>
         </Card>
         <Card>
