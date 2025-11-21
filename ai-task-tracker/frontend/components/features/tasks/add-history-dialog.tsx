@@ -33,21 +33,41 @@ export function AddHistoryDialog({ taskId, onHistoryAdded }: AddHistoryDialogPro
     setIsLoading(true);
 
     try {
+      console.log('Adding history with completion:', completionPercentage);
+      
+      // Add history entry
       await api.post(`/api/tasks/${taskId}/history`, {
         comment,
         completion_percentage: completionPercentage,
       });
+      console.log('History added successfully');
 
-      setOpen(false);
+      // Update task progress_percent
+      const taskRes = await api.get(`/api/tasks/${taskId}`);
+      const currentTask = taskRes.data;
+      console.log('Current task before update:', currentTask.progress_percent);
+      
+      await api.put(`/api/tasks/${taskId}`, {
+        ...currentTask,
+        progress_percent: completionPercentage,
+      });
+      console.log('Task updated with progress:', completionPercentage);
+
+      // Reset form state
       setComment('');
       setCompletionPercentage(0);
+      setIsLoading(false);
       
+      // Close dialog
+      setOpen(false);
+      
+      // Call callback to refresh parent component
       if (onHistoryAdded) {
+        console.log('Calling onHistoryAdded callback');
         onHistoryAdded();
       }
     } catch (error) {
       console.error('Failed to add history', error);
-    } finally {
       setIsLoading(false);
     }
   };

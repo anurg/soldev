@@ -48,14 +48,17 @@ export default function TaskDetailsPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch task, subtasks, and history
+      console.log('fetchData called - fetching task data...');
+      // Fetch task, subtasks, and history with cache-busting
+      const timestamp = Date.now();
       const [taskRes, subtasksRes, historyRes] = await Promise.all([
-        api.get(`/api/tasks/${taskId}`),
-        api.get(`/api/tasks?parent_task_id=${taskId}`),
-        api.get(`/api/tasks/${taskId}/history`)
+        api.get(`/api/tasks/${taskId}?t=${timestamp}`),
+        api.get(`/api/tasks?parent_task_id=${taskId}&t=${timestamp}`),
+        api.get(`/api/tasks/${taskId}/history?t=${timestamp}`)
       ]);
       
       const taskData = taskRes.data;
+      console.log('Fetched task data - progress_percent:', taskData.progress_percent);
       setTask(taskData);
       setSubtasks(subtasksRes.data);
       setHistory(historyRes.data);
@@ -70,6 +73,7 @@ export default function TaskDetailsPage() {
           setMembers(membersRes.data);
         }
       }
+      console.log('fetchData complete - task state updated');
     } catch (error) {
       console.error('Failed to fetch task details', error);
     } finally {
@@ -87,6 +91,11 @@ export default function TaskDetailsPage() {
     if (!task) return;
     
     try {
+      // Auto-set progress to 100% when status is set to 'done'
+      if (updates.status === 'done' && updates.progress_percent === undefined) {
+        updates.progress_percent = 100;
+      }
+      
       const updatedTask = { ...task, ...updates };
       // Handle unassigned case for API
       if (updatedTask.assignee_id === 'unassigned') {

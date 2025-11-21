@@ -21,6 +21,7 @@ interface Task {
   title: string;
   status: string;
   priority: string;
+  progress_percent: number;
   parent_task_id?: string | null;
 }
 
@@ -180,10 +181,23 @@ function TaskCard({ task }: { task: Task }) {
             <span>{task.title}</span>
             <span className="text-xs text-gray-500">{task.status}</span>
           </CardTitle>
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColor} capitalize`}>
               {task.priority}
             </span>
+            {/* Progress bar */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Progress</span>
+                <span className="font-medium">{task.progress_percent}%</span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                <div 
+                  className="bg-primary h-1.5 rounded-full transition-all"
+                  style={{ width: `${task.progress_percent}%` }}
+                />
+              </div>
+            </div>
           </div>
         </CardHeader>
       </Card>
