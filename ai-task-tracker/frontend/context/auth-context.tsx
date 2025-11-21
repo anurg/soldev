@@ -27,17 +27,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for token and user in localStorage on mount
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
 
-    if (token && storedUser) {
-      try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse user data', e);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+      if (token && storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Failed to parse user data', e);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
       }
     }
     setLoading(false);

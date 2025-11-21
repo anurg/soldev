@@ -26,7 +26,7 @@ export default function MyTasksPage() {
     const fetchTasks = async () => {
       if (!user?.id) return;
       try {
-        const response = await api.get(`/tasks?assignee_id=${user.id}`);
+        const response = await api.get(`/api/tasks?assignee_id=${user.id}`);
         setTasks(response.data);
       } catch (error) {
         console.error('Failed to fetch tasks', error);

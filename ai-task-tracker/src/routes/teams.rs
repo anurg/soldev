@@ -99,7 +99,30 @@ async fn add_member_handler(
 ) -> impl Responder {
     let team_id = path.into_inner();
 
-    match add_team_member(&pool, team_id, req.user_id).await {
+    let user_id = if let Some(id) = req.user_id {
+        id
+    } else if let Some(email) = &req.email {
+        match crate::db::find_user_by_email(&pool, email).await {
+            Ok(Some(user)) => user.id,
+            Ok(None) => {
+                return HttpResponse::NotFound().json(serde_json::json!({
+                    "error": "User not found"
+                }));
+            }
+            Err(e) => {
+                log::error!("Database error: {}", e);
+                return HttpResponse::InternalServerError().json(serde_json::json!({
+                    "error": "Internal server error"
+                }));
+            }
+        }
+    } else {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "error": "Either user_id or email must be provided"
+        }));
+    };
+
+    match add_team_member(&pool, team_id, user_id).await {
         Ok(member) => HttpResponse::Created().json(member),
         Err(e) => {
             log::error!("Database error: {}", e);

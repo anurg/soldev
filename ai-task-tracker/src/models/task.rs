@@ -7,6 +7,7 @@ use uuid::Uuid;
 pub struct Task {
     pub id: Uuid,
     pub project_id: Uuid,
+    pub parent_task_id: Option<Uuid>,
     pub title: String,
     pub description: Option<String>,
     pub status: String,
@@ -92,6 +93,7 @@ impl std::str::FromStr for TaskPriority {
 #[derive(Debug, Deserialize)]
 pub struct CreateTaskRequest {
     pub project_id: Uuid,
+    pub parent_task_id: Option<Uuid>,
     pub title: String,
     pub description: Option<String>,
     pub priority: Option<TaskPriority>,

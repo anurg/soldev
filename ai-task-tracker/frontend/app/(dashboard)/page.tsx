@@ -33,8 +33,8 @@ export default function DashboardPage() {
       
       try {
         const [tasksRes, projectsRes] = await Promise.all([
-          api.get(`/tasks?assignee_id=${user.id}`),
-          api.get(`/projects`) // Assuming this returns projects for the user's teams
+          api.get(`/api/tasks?assignee_id=${user.id}`),
+          api.get(`/api/projects`) // Assuming this returns projects for the user's teams
         ]);
         
         setTasks(tasksRes.data);
@@ -58,19 +58,14 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <div className="flex items-center gap-2">
           <Button asChild>
-            <Link href="/projects/new">
+            <Link href="/projects">
               <Plus className="mr-2 h-4 w-4" /> New Project
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/tasks/new">
-              <Plus className="mr-2 h-4 w-4" /> New Task
             </Link>
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -100,8 +95,34 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-sm text-muted-foreground">Loading...</div>
+            ) : projects.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No projects found.</div>
+            ) : (
+              <div className="space-y-4">
+                {projects.slice(0, 5).map((project) => (
+                  <div key={project.id} className="flex items-center justify-between border-b pb-2 last:border-0">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{project.name}</span>
+                    </div>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/projects/${project.id}`}>View</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
           <CardHeader>
             <CardTitle>Recent Tasks</CardTitle>
           </CardHeader>

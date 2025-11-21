@@ -37,16 +37,16 @@ export function CreateProjectDialog({ onProjectCreated }: CreateProjectDialogPro
       // We need a team_id. For now, we'll fetch the user's first team or create one if none exists.
       // Ideally, the user should select a team.
       // Let's fetch teams first.
-      const teamsRes = await api.get('/teams');
+      const teamsRes = await api.get('/api/teams');
       let teamId = teamsRes.data[0]?.id;
 
       if (!teamId) {
         // Create a default team if none exists
-        const newTeamRes = await api.post('/teams', { name: 'My Team' });
+        const newTeamRes = await api.post('/api/teams', { name: 'My Team' });
         teamId = newTeamRes.data.id;
       }
 
-      await api.post('/projects', {
+      await api.post('/api/projects', {
         name,
         description,
         team_id: teamId,

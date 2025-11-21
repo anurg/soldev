@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,32 +14,36 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Loader2 } from 'lucide-react';
+import { Loader2, UserPlus } from 'lucide-react';
 
-interface CreateTeamDialogProps {
-  onTeamCreated?: () => void;
+interface AddMemberDialogProps {
+  teamId: string;
+  onMemberAdded: () => void;
 }
 
-export function CreateTeamDialog({ onTeamCreated }: CreateTeamDialogProps) {
+export function AddMemberDialog({ teamId, onMemberAdded }: AddMemberDialogProps) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
 
     try {
-      await api.post('/api/teams', { name });
+      await api.post(`/api/teams/${teamId}/members`, { email });
       setOpen(false);
-      setName('');
-      router.refresh();
-      if (onTeamCreated) {
-        onTeamCreated();
+      setEmail('');
+      onMemberAdded();
+    } catch (err: any) {
+      console.error(err);
+      if (err.response?.status === 404) {
+        setError('User not found with this email.');
+      } else {
+        setError('Failed to add member. User might already be in the team.');
       }
-    } catch (error) {
-      console.error('Failed to create team', error);
     } finally {
       setIsLoading(false);
     }
@@ -49,42 +52,45 @@ export function CreateTeamDialog({ onTeamCreated }: CreateTeamDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          New Team
+        <Button variant="outline" size="sm" className="w-full mt-2">
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add Member
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Create Team</DialogTitle>
+          <DialogTitle>Add Team Member</DialogTitle>
           <DialogDescription>
-            Create a new team to collaborate with others.
+            Enter the email address of the user you want to add to this team.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
+              <Label htmlFor="email" className="text-right">
+                Email
               </Label>
               <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="col-span-3"
                 required
+                placeholder="user@example.com"
               />
             </div>
+            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Adding...
                 </>
               ) : (
-                'Create Team'
+                'Add Member'
               )}
             </Button>
           </DialogFooter>

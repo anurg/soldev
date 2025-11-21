@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import api from '@/lib/api';
 import { CreateTaskDialog } from '@/components/features/tasks/create-task-dialog';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,8 +32,8 @@ export default function ProjectDetailsPage() {
   const fetchData = useCallback(async () => {
     try {
       const [projectRes, tasksRes] = await Promise.all([
-        api.get(`/projects/${projectId}`),
-        api.get(`/tasks?project_id=${projectId}`)
+        api.get(`/api/projects/${projectId}`),
+        api.get(`/api/tasks?project_id=${projectId}`)
       ]);
       setProject(projectRes.data);
       setTasks(tasksRes.data);
@@ -124,17 +125,19 @@ function TaskCard({ task }: { task: Task }) {
   }[task.priority] || 'bg-slate-100';
 
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow">
-      <CardHeader className="p-4">
-        <CardTitle className="text-sm font-medium leading-none flex justify-between items-start gap-2">
-          <span>{task.title}</span>
-        </CardTitle>
-        <div className="pt-2">
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColor} capitalize`}>
-            {task.priority}
-          </span>
-        </div>
-      </CardHeader>
-    </Card>
+    <Link href={`/tasks/${task.id}`}>
+      <Card className="cursor-pointer hover:shadow-md transition-shadow">
+        <CardHeader className="p-4">
+          <CardTitle className="text-sm font-medium leading-none flex justify-between items-start gap-2">
+            <span>{task.title}</span>
+          </CardTitle>
+          <div className="pt-2">
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColor} capitalize`}>
+              {task.priority}
+            </span>
+          </div>
+        </CardHeader>
+      </Card>
+    </Link>
   );
 }

@@ -24,7 +24,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      await api.post('/auth/register', { full_name: fullName, email, password });
+      await api.post('/api/auth/register', { full_name: fullName, email, password });
       router.push('/login?registered=true');
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

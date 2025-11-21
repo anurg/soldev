@@ -21,10 +21,11 @@ import { Plus, Loader2 } from 'lucide-react';
 
 interface CreateTaskDialogProps {
   projectId: string;
+  parentTaskId?: string;
   onTaskCreated?: () => void;
 }
 
-export function CreateTaskDialog({ projectId, onTaskCreated }: CreateTaskDialogProps) {
+export function CreateTaskDialog({ projectId, parentTaskId, onTaskCreated }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -37,8 +38,9 @@ export function CreateTaskDialog({ projectId, onTaskCreated }: CreateTaskDialogP
     setIsLoading(true);
 
     try {
-      await api.post('/tasks', {
+      await api.post('/api/tasks', {
         project_id: projectId,
+        parent_task_id: parentTaskId,
         title,
         description,
         priority,

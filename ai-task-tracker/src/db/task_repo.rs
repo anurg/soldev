@@ -7,12 +7,13 @@ pub async fn create_task(pool: &PgPool, req: &CreateTaskRequest) -> Result<Task,
     
     let task = sqlx::query_as::<_, Task>(
         r#"
-        INSERT INTO tasks (project_id, title, description, priority, assignee_id, due_date)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO tasks (project_id, parent_task_id, title, description, priority, assignee_id, due_date)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
         "#,
     )
     .bind(req.project_id)
+    .bind(req.parent_task_id)
     .bind(&req.title)
     .bind(&req.description)
     .bind(priority)
@@ -42,17 +43,26 @@ pub async fn list_tasks(
     project_id: Option<Uuid>,
     assignee_id: Option<Uuid>,
     status: Option<String>,
+    parent_task_id: Option<Uuid>,
 ) -> Result<Vec<Task>, sqlx::Error> {
     let mut query = String::from("SELECT * FROM tasks WHERE 1=1");
+    let mut param_idx = 1;
     
     if project_id.is_some() {
-        query.push_str(" AND project_id = $1");
+        query.push_str(&format!(" AND project_id = ${}", param_idx));
+        param_idx += 1;
     }
     if assignee_id.is_some() {
-        query.push_str(" AND assignee_id = $2");
+        query.push_str(&format!(" AND assignee_id = ${}", param_idx));
+        param_idx += 1;
     }
     if status.is_some() {
-        query.push_str(" AND status = $3");
+        query.push_str(&format!(" AND status = ${}", param_idx));
+        param_idx += 1;
+    }
+    if parent_task_id.is_some() {
+        query.push_str(&format!(" AND parent_task_id = ${}", param_idx));
+        param_idx += 1;
     }
     
     query.push_str(" ORDER BY created_at DESC");
@@ -67,6 +77,9 @@ pub async fn list_tasks(
     }
     if let Some(s) = status {
         q = q.bind(s);
+    }
+    if let Some(ptid) = parent_task_id {
+        q = q.bind(ptid);
     }
 
     let tasks = q.fetch_all(pool).await?;

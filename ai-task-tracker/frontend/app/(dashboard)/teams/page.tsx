@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { CreateTeamDialog } from '@/components/features/teams/create-team-dialog';
-import { Users } from 'lucide-react';
+import { AddMemberDialog } from '@/components/features/teams/add-member-dialog';
+import { Users, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface TeamMember {
@@ -17,7 +19,7 @@ interface TeamMember {
 interface Team {
   id: string;
   name: string;
-  members?: TeamMember[]; // Assuming API returns members or we fetch them separately
+  members?: TeamMember[];
 }
 
 export default function TeamsPage() {
@@ -26,16 +28,12 @@ export default function TeamsPage() {
 
   const fetchTeams = async () => {
     try {
-      const response = await api.get('/teams');
+      const response = await api.get('/api/teams');
       const teamsData = response.data;
       
-      // Fetch members for each team (if not included in list response)
-      // For now, let's assume we need to fetch members separately or the API includes them.
-      // Based on API docs, GET /teams/:id/members lists members.
-      // We'll fetch members for each team to display them.
       const teamsWithMembers = await Promise.all(teamsData.map(async (team: Team) => {
         try {
-          const membersRes = await api.get(`/teams/${team.id}/members`);
+          const membersRes = await api.get(`/api/teams/${team.id}/members`);
           return { ...team, members: membersRes.data };
         } catch {
           return { ...team, members: [] };
@@ -47,6 +45,16 @@ export default function TeamsPage() {
       console.error('Failed to fetch teams', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const removeMember = async (teamId: string, userId: string) => {
+    if (!confirm('Are you sure you want to remove this member?')) return;
+    try {
+      await api.delete(`/api/teams/${teamId}/members/${userId}`);
+      fetchTeams();
+    } catch (error) {
+      console.error('Failed to remove member', error);
     }
   };
 
@@ -76,25 +84,40 @@ export default function TeamsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
-            <Card key={team.id} className="flex flex-col">
+            <Card key={team.id} className="flex flex-col h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">{team.name}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="mt-4 space-y-3">
+              <CardContent className="flex-1 flex flex-col">
+                <div className="mt-4 space-y-3 flex-1">
                   <h4 className="text-sm font-medium text-muted-foreground">Members</h4>
                   <div className="flex flex-col gap-2">
                     {team.members && team.members.length > 0 ? (
                       team.members.map((member) => (
-                        <div key={member.user_id} className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-xs">
-                              {member.full_name?.charAt(0) || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm">{member.full_name}</span>
-                          <span className="text-xs text-muted-foreground ml-auto">{member.role}</span>
+                        <div key={member.user_id} className="flex items-center gap-2 justify-between group p-2 hover:bg-slate-50 rounded-md transition-colors">
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-xs">
+                                {member.full_name?.charAt(0) || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium leading-none">{member.full_name}</span>
+                              <span className="text-[10px] text-muted-foreground">{member.email}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground capitalize">{member.role}</span>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
+                                onClick={() => removeMember(team.id, member.user_id)}
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -102,6 +125,7 @@ export default function TeamsPage() {
                     )}
                   </div>
                 </div>
+                <AddMemberDialog teamId={team.id} onMemberAdded={fetchTeams} />
               </CardContent>
             </Card>
           ))}

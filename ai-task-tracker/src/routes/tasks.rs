@@ -41,8 +41,11 @@ async fn list_tasks_handler(
         .get("assignee_id")
         .and_then(|id| Uuid::parse_str(id).ok());
     let status = query.get("status").map(|s| s.to_string());
+    let parent_task_id = query
+        .get("parent_task_id")
+        .and_then(|id| Uuid::parse_str(id).ok());
 
-    match list_tasks(&pool, project_id, assignee_id, status).await {
+    match list_tasks(&pool, project_id, assignee_id, status, parent_task_id).await {
         Ok(tasks) => HttpResponse::Ok().json(tasks),
         Err(e) => {
             log::error!("Database error: {}", e);

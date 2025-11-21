@@ -36,5 +36,6 @@ pub struct TeamMember {
 
 #[derive(Debug, Deserialize)]
 pub struct AddTeamMemberRequest {
-    pub user_id: Uuid,
+    pub user_id: Option<Uuid>,
+    pub email: Option<String>,
 }

@@ -21,7 +21,7 @@ export default function ProjectsPage() {
 
   const fetchProjects = async () => {
     try {
-      const response = await api.get('/projects');
+      const response = await api.get('/api/projects');
       setProjects(response.data);
     } catch (error) {
       console.error('Failed to fetch projects', error);
@@ -56,27 +56,27 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
-            <Card key={project.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle>{project.name}</CardTitle>
-                <CardDescription className="line-clamp-2">
-                  {project.description || 'No description'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="text-xs text-muted-foreground">
-                  Created {new Date(project.created_at).toLocaleDateString()}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button asChild variant="ghost" className="w-full justify-between group">
-                  <Link href={`/projects/${project.id}`}>
-                    View Tasks
+            <Link key={project.id} href={`/projects/${project.id}`}>
+              <Card className="flex flex-col h-full cursor-pointer hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle>{project.name}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {project.description || 'No description'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1">
+                  <div className="text-xs text-muted-foreground">
+                    Created {new Date(project.created_at).toLocaleDateString()}
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <div className="w-full flex items-center justify-between text-sm text-muted-foreground group-hover:text-primary">
+                    <span>View Tasks</span>
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
+                  </div>
+                </CardFooter>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
