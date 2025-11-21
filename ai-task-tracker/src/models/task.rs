@@ -109,6 +109,7 @@ pub struct UpdateTaskRequest {
     pub priority: Option<TaskPriority>,
     pub assignee_id: Option<Uuid>,
     pub due_date: Option<DateTime<Utc>>,
+    pub progress_percent: Option<i32>,
 }
 
 #[derive(Debug, Deserialize)]

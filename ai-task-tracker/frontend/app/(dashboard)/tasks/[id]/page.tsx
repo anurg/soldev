@@ -65,12 +65,22 @@ export default function TaskDetailsPage() {
 
       // Fetch project to get team_id, then fetch members
       if (taskData.project_id) {
+        console.log('Fetching project:', taskData.project_id);
         const projectRes = await api.get(`/api/projects/${taskData.project_id}`);
         const teamId = projectRes.data.team_id;
+        console.log('Project team_id:', teamId);
         
         if (teamId) {
+          console.log('Fetching team members for team:', teamId);
           const membersRes = await api.get(`/api/teams/${teamId}/members`);
+          console.log('Team members fetched:', membersRes.data);
           setMembers(membersRes.data);
+        } else {
+          console.log('No team_id found for project, fetching all users');
+          // If project has no team, fetch all users
+          const usersRes = await api.get('/api/users');
+          console.log('All users fetched:', usersRes.data);
+          setMembers(usersRes.data);
         }
       }
       console.log('fetchData complete - task state updated');
@@ -91,6 +101,8 @@ export default function TaskDetailsPage() {
     if (!task) return;
     
     try {
+      console.log('updateTask called with updates:', updates);
+      
       // Auto-set progress to 100% when status is set to 'done'
       if (updates.status === 'done' && updates.progress_percent === undefined) {
         updates.progress_percent = 100;
@@ -102,8 +114,10 @@ export default function TaskDetailsPage() {
         updatedTask.assignee_id = null;
       }
       
+      console.log('Sending update to API:', updatedTask);
       await api.put(`/api/tasks/${taskId}`, updatedTask);
       setTask(updatedTask);
+      console.log('Task updated successfully');
     } catch (error) {
       console.error('Failed to update task', error);
     }
@@ -287,7 +301,7 @@ export default function TaskDetailsPage() {
       <div className="mt-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Updates & Progress</h2>
-          <AddHistoryDialog taskId={taskId} onHistoryAdded={fetchData} />
+          <AddHistoryDialog taskId={taskId} currentProgress={task.progress_percent} onHistoryAdded={fetchData} />
         </div>
         <TaskHistory history={history} />
       </div>

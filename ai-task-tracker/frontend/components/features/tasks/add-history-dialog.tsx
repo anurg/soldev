@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,14 +19,22 @@ import { Plus, Loader2 } from 'lucide-react';
 
 interface AddHistoryDialogProps {
   taskId: string;
+  currentProgress?: number;
   onHistoryAdded?: () => void;
 }
 
-export function AddHistoryDialog({ taskId, onHistoryAdded }: AddHistoryDialogProps) {
+export function AddHistoryDialog({ taskId, currentProgress = 0, onHistoryAdded }: AddHistoryDialogProps) {
   const [open, setOpen] = useState(false);
   const [comment, setComment] = useState('');
-  const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [completionPercentage, setCompletionPercentage] = useState(currentProgress);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Reset completion percentage to current progress when dialog opens
+  useEffect(() => {
+    if (open) {
+      setCompletionPercentage(currentProgress);
+    }
+  }, [open, currentProgress]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

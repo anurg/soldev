@@ -103,6 +103,7 @@ pub async fn update_task(
             priority = COALESCE($5, priority),
             assignee_id = COALESCE($6, assignee_id),
             due_date = COALESCE($7, due_date),
+            progress_percent = COALESCE($8, progress_percent),
             updated_at = NOW()
         WHERE id = $1
         RETURNING *
@@ -115,6 +116,7 @@ pub async fn update_task(
     .bind(priority_str)
     .bind(req.assignee_id)
     .bind(req.due_date)
+    .bind(req.progress_percent)
     .fetch_one(pool)
     .await?;
 
