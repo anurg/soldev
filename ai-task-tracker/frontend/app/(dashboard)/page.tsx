@@ -14,6 +14,7 @@ interface Task {
   status: string;
   priority: string;
   due_date?: string;
+  parent_task_id?: string | null;
 }
 
 interface Project {
@@ -33,8 +34,8 @@ export default function DashboardPage() {
       
       try {
         const [tasksRes, projectsRes] = await Promise.all([
-          api.get(`/api/tasks?assignee_id=${user.id}`),
-          api.get(`/api/projects`) // Assuming this returns projects for the user's teams
+          api.get(`/api/tasks?t=${Date.now()}`),
+          api.get(`/api/projects?t=${Date.now()}`)
         ]);
         
         setTasks(tasksRes.data);
@@ -47,10 +48,27 @@ export default function DashboardPage() {
     };
 
     fetchData();
+    
+    // Auto-refresh every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
   }, [user?.id]);
 
-  const pendingTasks = tasks.filter(t => t.status !== 'done').length;
-  const completedTasks = tasks.filter(t => t.status === 'done').length;
+  // Robust status matching
+  const normalize = (s: string | null | undefined) => (s ?? '').toLowerCase();
+  
+  // Filter out subtasks if necessary, or keep them. Assuming we want top-level tasks only for consistency.
+  const topLevelTasks = tasks.filter(t => t.parent_task_id == null);
+  
+  const pendingTasks = topLevelTasks.filter(t => {
+    const s = normalize(t.status);
+    return !s.includes('done') && !s.includes('completed');
+  }).length;
+  
+  const completedTasks = topLevelTasks.filter(t => {
+    const s = normalize(t.status);
+    return s.includes('done') || s.includes('completed');
+  }).length;
 
   return (
     <div className="flex flex-col gap-6">

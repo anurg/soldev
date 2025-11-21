@@ -28,6 +28,11 @@ const navItems = [
     href: '/teams',
     icon: Users,
   },
+  {
+    title: 'Members',
+    href: '/members',
+    icon: Users,
+  },
 ];
 
 export function Sidebar() {

@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { CreateTaskDialog } from '@/components/features/tasks/create-task-dialog';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 interface Project {
@@ -20,6 +21,7 @@ interface Task {
   title: string;
   status: string;
   priority: string;
+  parent_task_id?: string | null;
 }
 
 export default function ProjectDetailsPage() {
@@ -32,8 +34,8 @@ export default function ProjectDetailsPage() {
   const fetchData = useCallback(async () => {
     try {
       const [projectRes, tasksRes] = await Promise.all([
-        api.get(`/api/projects/${projectId}`),
-        api.get(`/api/tasks?project_id=${projectId}`)
+        api.get(`/api/projects/${projectId}?t=${Date.now()}`),
+        api.get(`/api/tasks?project_id=${projectId}&t=${Date.now()}`)
       ]);
       setProject(projectRes.data);
       setTasks(tasksRes.data);
@@ -50,6 +52,34 @@ export default function ProjectDetailsPage() {
     }
   }, [projectId, fetchData]);
 
+  // Refetch when the tab becomes visible (e.g., after navigating back)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        fetchData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [fetchData]);
+
+// Refetch when the window gains focus (e.g., after navigating back from a task page)
+useEffect(() => {
+  const handleFocus = () => {
+    fetchData();
+  };
+  window.addEventListener('focus', handleFocus);
+  return () => window.removeEventListener('focus', handleFocus);
+}, [fetchData]);
+
+// Periodic polling to keep dashboard up-to-date
+useEffect(() => {
+  const interval = setInterval(() => {
+    fetchData();
+  }, 5000);
+  return () => clearInterval(interval);
+}, [fetchData]);
+
   if (loading) {
     return <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
@@ -58,18 +88,35 @@ export default function ProjectDetailsPage() {
     return <div>Project not found</div>;
   }
 
-  const todoTasks = tasks.filter(t => t.status === 'todo');
-  const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
-  const doneTasks = tasks.filter(t => t.status === 'done');
+  // Robust status matching (includes keywords)
+  // Consider only top‑level tasks (exclude subtasks) for dashboard counts
+  const topLevelTasks = tasks.filter(t => t.parent_task_id == null);
+  const normalize = (s: string | null | undefined) => (s ?? '').toLowerCase();
+  const todoTasks = topLevelTasks.filter(t => {
+    const s = normalize(t.status);
+    return s.includes('todo') || s.includes('pending');
+  });
+  const inProgressTasks = topLevelTasks.filter(t => {
+    const s = normalize(t.status);
+    return s.includes('in_progress') || s.includes('in progress') || s.includes('ongoing');
+  });
+  const doneTasks = topLevelTasks.filter(t => {
+    const s = normalize(t.status);
+    return s.includes('done') || s.includes('completed');
+  });
 
   return (
     <div className="flex flex-col gap-6 h-full">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-          <p className="text-muted-foreground">{project.description}</p>
-        </div>
-        <CreateTaskDialog projectId={projectId} onTaskCreated={fetchData} />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+            <p className="text-muted-foreground">{project.description}</p>
+            <div className="text-sm text-gray-500">Total tasks: {tasks.length}</div>
+          </div>
+            <div className="flex items-center gap-2">
+              <CreateTaskDialog projectId={projectId} onTaskCreated={fetchData} />
+              <Button variant="outline" onClick={fetchData}>Refresh</Button>
+            </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
@@ -110,7 +157,8 @@ export default function ProjectDetailsPage() {
               <TaskCard key={task.id} task={task} />
             ))}
           </div>
-        </div>
+        {/* Debug output removed */}
+      </div>
       </div>
     </div>
   );
@@ -130,6 +178,7 @@ function TaskCard({ task }: { task: Task }) {
         <CardHeader className="p-4">
           <CardTitle className="text-sm font-medium leading-none flex justify-between items-start gap-2">
             <span>{task.title}</span>
+            <span className="text-xs text-gray-500">{task.status}</span>
           </CardTitle>
           <div className="pt-2">
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColor} capitalize`}>

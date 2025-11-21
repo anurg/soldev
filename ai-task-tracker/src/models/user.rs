@@ -66,3 +66,9 @@ pub struct AuthResponse {
     pub token: String,
     pub user: User,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUserRequest {
+    pub full_name: Option<String>,
+    pub password: Option<String>,
+}

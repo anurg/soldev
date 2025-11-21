@@ -61,3 +61,29 @@ pub async fn list_users(pool: &PgPool) -> Result<Vec<User>, sqlx::Error> {
 
     Ok(users)
 }
+
+pub async fn update_user(
+    pool: &PgPool,
+    user_id: Uuid,
+    full_name: Option<String>,
+    password_hash: Option<String>,
+) -> Result<User, sqlx::Error> {
+    let user = sqlx::query_as::<_, User>(
+        r#"
+        UPDATE users
+        SET
+            full_name = COALESCE($1, full_name),
+            password_hash = COALESCE($2, password_hash),
+            updated_at = NOW()
+        WHERE id = $3
+        RETURNING *
+        "#,
+    )
+    .bind(full_name)
+    .bind(password_hash)
+    .bind(user_id)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(user)
+}
