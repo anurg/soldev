@@ -4,9 +4,11 @@ pub mod project;
 pub mod task;
 pub mod subtask;
 pub mod email_log;
+pub mod task_history;
 
 pub use user::*;
 pub use team::*;
 pub use project::*;
 pub use task::*;
 pub use subtask::*;
+pub use task_history::*;

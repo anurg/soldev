@@ -6,11 +6,13 @@ use crate::{
     db::{
         create_subtask, create_task, delete_task, find_task_by_id,
         list_subtasks, list_tasks, update_task, update_task_progress,
+        create_task_history, list_task_history,
     },
     models::{
         CreateSubtaskRequest, CreateTaskRequest, UpdateProgressRequest,
-        UpdateTaskRequest,
+        UpdateTaskRequest, CreateTaskHistoryRequest,
     },
+    utils::Claims,
 };
 
 #[post("")]
@@ -168,6 +170,63 @@ async fn list_subtasks_handler(pool: web::Data<PgPool>, path: web::Path<Uuid>) -
     }
 }
 
+#[post("/{task_id}/history")]
+async fn create_history_handler(
+    pool: web::Data<PgPool>,
+    path: web::Path<Uuid>,
+    req: web::Json<CreateTaskHistoryRequest>,
+    http_req: actix_web::HttpRequest,
+) -> impl Responder {
+    use actix_web::HttpMessage;
+    
+    let task_id = path.into_inner();
+
+    // Get user ID from claims
+    let user_id = match http_req.extensions().get::<Claims>() {
+        Some(claims) => match Uuid::parse_str(&claims.sub) {
+            Ok(id) => id,
+            Err(_) => {
+                return HttpResponse::Unauthorized().json(serde_json::json!({
+                    "error": "Invalid user ID"
+                }))
+            }
+        },
+        None => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "error": "Unauthorized"
+            }))
+        }
+    };
+
+    match create_task_history(&pool, task_id, user_id, &req).await {
+        Ok(history) => HttpResponse::Created().json(history),
+        Err(e) => {
+            log::error!("Database error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            }))
+        }
+    }
+}
+
+#[get("/{task_id}/history")]
+async fn list_history_handler(
+    pool: web::Data<PgPool>,
+    path: web::Path<Uuid>,
+) -> impl Responder {
+    let task_id = path.into_inner();
+
+    match list_task_history(&pool, task_id).await {
+        Ok(history) => HttpResponse::Ok().json(history),
+        Err(e) => {
+            log::error!("Database error: {}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Internal server error"
+            }))
+        }
+    }
+}
+
 pub fn task_routes() -> actix_web::Scope {
     web::scope("/tasks")
         .service(create_task_handler)
@@ -178,4 +237,6 @@ pub fn task_routes() -> actix_web::Scope {
         .service(delete_task_handler)
         .service(create_subtask_handler)
         .service(list_subtasks_handler)
+        .service(create_history_handler)
+        .service(list_history_handler)
 }

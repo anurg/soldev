@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { EditTaskDialog } from '@/components/features/tasks/edit-task-dialog';
 import { CreateTaskDialog } from '@/components/features/tasks/create-task-dialog';
+import { TaskHistory } from '@/components/features/tasks/task-history';
+import { AddHistoryDialog } from '@/components/features/tasks/add-history-dialog';
 import Link from 'next/link';
 
 interface Task {
@@ -40,20 +42,23 @@ export default function TaskDetailsPage() {
   const [task, setTask] = useState<Task | null>(null);
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<User[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch task and subtasks
-      const [taskRes, subtasksRes] = await Promise.all([
+      // Fetch task, subtasks, and history
+      const [taskRes, subtasksRes, historyRes] = await Promise.all([
         api.get(`/api/tasks/${taskId}`),
-        api.get(`/api/tasks?parent_task_id=${taskId}`)
+        api.get(`/api/tasks?parent_task_id=${taskId}`),
+        api.get(`/api/tasks/${taskId}/history`)
       ]);
       
       const taskData = taskRes.data;
       setTask(taskData);
       setSubtasks(subtasksRes.data);
+      setHistory(historyRes.data);
 
       // Fetch project to get team_id, then fetch members
       if (taskData.project_id) {
@@ -267,6 +272,15 @@ export default function TaskDetailsPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Task History Section */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Updates & Progress</h2>
+          <AddHistoryDialog taskId={taskId} onHistoryAdded={fetchData} />
+        </div>
+        <TaskHistory history={history} />
       </div>
     </div>
   );
