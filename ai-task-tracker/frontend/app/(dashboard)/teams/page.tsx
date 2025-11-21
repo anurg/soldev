@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreateTeamDialog } from '@/components/features/teams/create-team-dialog';
 import { AddMemberDialog } from '@/components/features/teams/add-member-dialog';
+import { EditTeamDialog } from '@/components/features/teams/edit-team-dialog';
 import { Users, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -25,6 +26,7 @@ interface Team {
 export default function TeamsPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
   const fetchTeams = async () => {
     try {
@@ -48,7 +50,8 @@ export default function TeamsPage() {
     }
   };
 
-  const removeMember = async (teamId: string, userId: string) => {
+  const removeMember = async (e: React.MouseEvent, teamId: string, userId: string) => {
+    e.stopPropagation(); // Prevent opening edit dialog
     if (!confirm('Are you sure you want to remove this member?')) return;
     try {
       await api.delete(`/api/teams/${teamId}/members/${userId}`);
@@ -84,7 +87,11 @@ export default function TeamsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
-            <Card key={team.id} className="flex flex-col h-full">
+            <Card 
+              key={team.id} 
+              className="flex flex-col h-full cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => setEditingTeam(team)}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">{team.name}</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -113,7 +120,7 @@ export default function TeamsPage() {
                                 variant="ghost" 
                                 size="icon" 
                                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-50"
-                                onClick={() => removeMember(team.id, member.user_id)}
+                                onClick={(e) => removeMember(e, team.id, member.user_id)}
                             >
                                 <Trash2 className="h-3 w-3" />
                             </Button>
@@ -125,11 +132,22 @@ export default function TeamsPage() {
                     )}
                   </div>
                 </div>
-                <AddMemberDialog teamId={team.id} onMemberAdded={fetchTeams} />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <AddMemberDialog teamId={team.id} onMemberAdded={fetchTeams} />
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
+
+      {editingTeam && (
+        <EditTeamDialog 
+          team={editingTeam} 
+          open={!!editingTeam} 
+          onOpenChange={(open) => !open && setEditingTeam(null)}
+          onTeamUpdated={fetchTeams}
+        />
       )}
     </div>
   );

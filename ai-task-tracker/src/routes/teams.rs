@@ -14,9 +14,29 @@ use crate::{
 async fn create_team_handler(
     pool: web::Data<PgPool>,
     req: web::Json<CreateTeamRequest>,
+    http_req: actix_web::HttpRequest,
 ) -> impl Responder {
+    use actix_web::HttpMessage;
+    use crate::utils::Claims;
+
+    // Get user ID from claims
+    let user_id = match http_req.extensions().get::<Claims>() {
+        Some(claims) => match uuid::Uuid::parse_str(&claims.sub) {
+            Ok(id) => id,
+            Err(_) => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Invalid user ID"})),
+        },
+        None => return HttpResponse::Unauthorized().json(serde_json::json!({"error": "Unauthorized"})),
+    };
+
     match create_team(&pool, &req).await {
-        Ok(team) => HttpResponse::Created().json(team),
+        Ok(team) => {
+            // Auto-add creator as member
+            if let Err(e) = crate::db::add_team_member(&pool, team.id, user_id).await {
+                log::error!("Failed to auto-add creator to team: {}", e);
+                // We don't fail the request if adding member fails, but we log it
+            }
+            HttpResponse::Created().json(team)
+        },
         Err(e) => {
             log::error!("Database error: {}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({

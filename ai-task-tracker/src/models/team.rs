@@ -39,3 +39,13 @@ pub struct AddTeamMemberRequest {
     pub user_id: Option<Uuid>,
     pub email: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct TeamMemberWithUser {
+    pub team_id: Uuid,
+    pub user_id: Uuid,
+    pub joined_at: DateTime<Utc>,
+    pub full_name: String,
+    pub email: String,
+    pub role: String,
+}

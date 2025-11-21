@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Folder, CheckSquare, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { CreateProjectDialog } from '@/components/features/projects/create-project-dialog';
 
 interface Task {
   id: string;
@@ -74,13 +75,10 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          <Button asChild>
-            <Link href="/projects">
-              <Plus className="mr-2 h-4 w-4" /> New Project
-            </Link>
-          </Button>
-        </div>
+        <CreateProjectDialog onProjectCreated={() => {
+          // Refresh the page data after creating a project
+          window.location.reload();
+        }} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

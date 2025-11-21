@@ -1,4 +1,4 @@
-use crate::models::{CreateTeamRequest, Team, TeamMember, UpdateTeamRequest};
+use crate::models::{CreateTeamRequest, Team, TeamMember, TeamMemberWithUser, UpdateTeamRequest};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -121,10 +121,15 @@ pub async fn remove_team_member(
     Ok(())
 }
 
-pub async fn list_team_members(pool: &PgPool, team_id: Uuid) -> Result<Vec<TeamMember>, sqlx::Error> {
-    let members = sqlx::query_as::<_, TeamMember>(
+
+
+pub async fn list_team_members(pool: &PgPool, team_id: Uuid) -> Result<Vec<TeamMemberWithUser>, sqlx::Error> {
+    let members = sqlx::query_as::<_, TeamMemberWithUser>(
         r#"
-        SELECT * FROM team_members WHERE team_id = $1
+        SELECT tm.team_id, tm.user_id, tm.joined_at, u.full_name, u.email, u.role
+        FROM team_members tm
+        JOIN users u ON tm.user_id = u.id
+        WHERE tm.team_id = $1
         "#,
     )
     .bind(team_id)
